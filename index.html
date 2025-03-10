@@ -111,8 +111,7 @@
     }
 
     const sum = Object.values(yearlyLeaveCredits).reduce((acc, val) => acc + val, 0);
-
-    return { leaveCredits: totalCredits - 0.042 };
+    return sum + currentCreditsAsOfDateStart - 0.042;
 }
 
 function isLeapYear(year) {
