@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Credits Calculator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center">Leave Credits Calculator</h2>
+        <div class="card p-4">
+            <div class="mb-3">
+                <label for="currentCredits" class="form-label">Current Leave Credits</label>
+                <input type="number" id="currentCredits" class="form-control" step="0.01">
+            </div>
+            <div class="mb-3">
+                <label for="dateStart" class="form-label">Last Updated (Start Date)</label>
+                <input type="date" id="dateStart" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="dateEnd" class="form-label">As Of (End Date)</label>
+                <input type="date" id="dateEnd" class="form-control">
+            </div>
+            <button class="btn btn-primary w-100" onclick="calculateCredits()">Compute</button>
+            <h4 class="mt-3 text-center">Leave Credits: <span id="result">-</span></h4>
+        </div>
+    </div>
+
+    <script>
+        function calculateCredits() {
+            const dateStart = document.getElementById('dateStart').value;
+            const dateEnd = document.getElementById('dateEnd').value;
+            const currentCredits = parseFloat(document.getElementById('currentCredits').value) || 0;
+
+            if (!dateStart || !dateEnd) {
+                alert("Please select both dates.");
+                return;
+            }
+
+            const result = computeCredits(dateStart, dateEnd, currentCredits);
+            document.getElementById('result').innerText = result.leaveCredits.toFixed(2);
+        }
+    </script>
+
+    <script>
+        // Your provided function goes here
+        function computeCredits(dateStart, dateEnd, currentCreditsAsOfDateStart) {
+            const leaveCreditsTable = {
+                1: 0.042, 2: 0.083, 3: 0.125, 4: 0.167, 5: 0.208, 6: 0.250,
+                7: 0.292, 8: 0.333, 9: 0.375, 10: 0.417, 11: 0.458, 12: 0.500,
+                13: 0.542, 14: 0.583, 15: 0.625, 16: 0.667, 17: 0.708, 18: 0.750,
+                19: 0.792, 20: 0.833, 21: 0.875, 22: 0.917, 23: 0.958, 24: 1.000,
+                25: 1.042, 26: 1.083, 27: 1.125, 28: 1.167, 29: 1.208, 30: 1.250
+            };
+
+            const start = new Date(dateStart);
+            const end = new Date(dateEnd);
+            let totalCredits = currentCreditsAsOfDateStart;
+
+            while (start <= end) {
+                const daysInMonth = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
+                totalCredits += leaveCreditsTable[daysInMonth] || 0;
+                start.setMonth(start.getMonth() + 1);
+            }
+            
+            return { leaveCredits: totalCredits - 0.042 };
+        }
+    </script>
+</body>
+</html>
