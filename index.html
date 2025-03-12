@@ -16,11 +16,11 @@
         <div class="card p-4 shadow">
             <div class="mb-3">
                 <label for="currentCredits" class="form-label">Current Leave Credits</label>
-                <input type="number" id="currentCredits" class="form-control" step="0.01">
+                <input type="number" id="currentCredits" class="form-control" step="0.01" >
             </div>
             <div class="mb-3">
                 <label for="dateStart" class="form-label">Last Updated (Start Date)</label>
-                <input type="text" id="dateStart" class="form-control datepicker">
+                <input type="text" id="dateStart" class="form-control datepicker" autocomplete="off">
             </div>
             <div class="mb-3">
                 <label for="dateEnd" class="form-label">As Of (End Date)</label>
@@ -31,98 +31,7 @@
         </div>
     </div>
 
-    <script>
-        function calculateCredits() {
-            const dateStart = document.getElementById('dateStart').value;
-            const dateEnd = document.getElementById('dateEnd').value;
-            const currentCredits = parseFloat(document.getElementById('currentCredits').value) || 0;
-
-            if (!dateStart || !dateEnd) {
-                alert("Please select both dates.");
-                return;
-            }
-
-            const result = computeCredits(dateStart, dateEnd, currentCredits);
-            document.getElementById('result').innerText = result.leaveCredits.toFixed(3);
-        }
-    </script>
-
-    <script>
-        // Your provided function goes here
-        function computeCredits(dateStart, dateEnd, currentCreditsAsOfDateStart) {
-    const _DAYS_IN_A_YEAR = 360;
-    const _MONTHS = 12;
-    const _ACTUAL_DAYS_SERVICE = 24;
-
-    const _DAYS_IN_A_MONTH = _DAYS_IN_A_YEAR / _MONTHS;
-    const _LEAVECREDITS_IN_A_YEAR = _DAYS_IN_A_YEAR / _ACTUAL_DAYS_SERVICE;
-    const _LEAVECREDITS_IN_A_MONTH = _LEAVECREDITS_IN_A_YEAR / _MONTHS;
-    const _LEAVECREDITS_PERDAY = _LEAVECREDITS_IN_A_MONTH / _DAYS_IN_A_MONTH;
-
-    const leaveCreditsTable = {
-        1: 0.042, 2: 0.083, 3: 0.125, 4: 0.167, 5: 0.208, 6: 0.250,
-        7: 0.292, 8: 0.333, 9: 0.375, 10: 0.417, 11: 0.458, 12: 0.500,
-        13: 0.542, 14: 0.583, 15: 0.625, 16: 0.667, 17: 0.708, 18: 0.750,
-        19: 0.792, 20: 0.833, 21: 0.875, 22: 0.917, 23: 0.958, 24: 1.000,
-        25: 1.042, 26: 1.083, 27: 1.125, 28: 1.167, 29: 1.208, 30: 1.250
-    };
-
-    const start = new Date(dateStart);
-    const end = new Date(dateEnd);
-
-    // Store months and day counts
-    const months = {};
-    let current = new Date(start);
-
-    while (current <= end) {
-        const monthYear = current.toLocaleString('default', { month: 'long', year: 'numeric' });
-		const firstDay = new Date(Math.max(current.getTime(), new Date(current.getFullYear(), current.getMonth(), 1).getTime()));
-        
-        const lastDay = new Date(Math.min(new Date(current.getFullYear(), current.getMonth() + 1, 0), end));
-        const daysPassed = Math.ceil((lastDay - firstDay) / (1000 * 60 * 60 * 24)) + 1;
-        months[monthYear] = daysPassed;
-
-        // Move to the first day of the next month
-        current.setMonth(current.getMonth() + 1, 1);
-    }
-
-    let previousYear = null;
-    const yearlyLeaveCredits = {};
-
-    for (const [month, days] of Object.entries(months)) {
-        const dateObj = new Date(month);
-        const monthName = dateObj.toLocaleString('default', { month: 'long' });
-        const year = dateObj.getFullYear();
-
-        let adjustedDays = days;
-
-        if (isLeapYear(year) && monthName === "February" && days === 29) {
-            adjustedDays = 30;
-        } else if (monthName === "February" && days === 28) {
-            adjustedDays = 30;
-        } else if (days === 31) {
-            adjustedDays = 30;
-        }
-
-        const leaveCreditsEarned = leaveCreditsTable[adjustedDays] || 0;
-
-        if (!yearlyLeaveCredits[year]) {
-            yearlyLeaveCredits[year] = 0;
-        }
-        yearlyLeaveCredits[year] += leaveCreditsEarned;
-
-        previousYear = year;
-    }
-
-    const sum = Object.values(yearlyLeaveCredits).reduce((acc, val) => acc + val, 0);
-    // return sum + currentCreditsAsOfDateStart - 0.042;
-    return { leaveCredits: sum + currentCreditsAsOfDateStart - 0.042 };
-}
-
-function isLeapYear(year) {
-    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-}
-    </script>
+  
      <script>
         $(document).ready(function() {
             $('.datepicker').datepicker({
@@ -133,5 +42,108 @@ function isLeapYear(year) {
             });
         });
     </script>
+
+<script>
+    function calculateCredits() {
+        const dateStart = document.getElementById('dateStart').value;
+        const dateEnd = document.getElementById('dateEnd').value;
+        const currentCredits = parseFloat(document.getElementById('currentCredits').value) || 0;
+
+        if (!dateStart || !dateEnd) {
+            alert("Please select both dates.");
+            return;
+        }
+
+        const result = computeCredits(dateStart, dateEnd, currentCredits);
+        document.getElementById('result').innerText = result.leaveCredits.toFixed(3);
+    }
+    function computeCredits(startDate, endDate, currentleaveCredits) {
+        let start = new Date(startDate);
+        let end = new Date(endDate);
+        let current = new Date(start);
+        let theend = new Date(end);
+        let result = [];
+        let totalGarneredLeaveCredits = 0;
+        let startday1 = extractPassedDates(start);
+        let endday2 = extractPassedDates(end);
+
+        
+        const leaveCreditsTable = {
+                1: 0.042, 2: 0.083, 3: 0.125, 4: 0.167, 5: 0.208, 6: 0.250,
+                7: 0.292, 8: 0.333, 9: 0.375, 10: 0.417, 11: 0.458, 12: 0.500,
+                13: 0.542, 14: 0.583, 15: 0.625, 16: 0.667, 17: 0.708, 18: 0.750,
+                19: 0.792, 20: 0.833, 21: 0.875, 22: 0.917, 23: 0.958, 24: 1.000,
+                25: 1.042, 26: 1.083, 27: 1.125, 28: 1.167, 29: 1.208, 30: 1.250,
+                31: 1.250
+            };
+
+        while (current <= end) {
+            let year = current.getFullYear();
+            let month = current.toLocaleString('default', { month: 'long' });
+            let endmonth = theend.toLocaleString('default', { month: 'long' });
+            let daysInMonth = new Date(year, current.getMonth() + 1, 0).getDate();
+            let daysPassed;
+
+            let garneredLeaveCredits = 0;
+            daysPassed = getDaysPassed(current, start, end);
+           
+        
+        // Condition: If the month is February and it's the last day of the month (28 or 29)
+            if (current.getMonth() === 1 && daysPassed === daysInMonth) { daysPassed = 30;}
+
+            
+            garneredLeaveCredits = leaveCreditsTable[daysPassed] || 0;
+            totalGarneredLeaveCredits += garneredLeaveCredits;
+
+            result.push(`${month} ${year} - ${daysPassed} days has passed on this month - ${garneredLeaveCredits} leave credits.`);
+            current.setMonth(current.getMonth() + 1, 1); // Move to the next month
+        }
+    
+        const sum = totalGarneredLeaveCredits + currentleaveCredits;
+        // return result.join("\n") + `\nTotal leave credits earned: ${totalGarneredLeaveCredits + currentleaveCredits}`;
+    return { leaveCredits: sum };
+
+    }
+    function extractPassedDates(date) {
+        return new Date(date).getDate();
+    }
+
+    function getDaysPassed(current, start, end) {
+        const isStartMonth = current.getFullYear() === start.getFullYear() && 
+                            current.getMonth() === start.getMonth();
+        const isEndMonth = current.getFullYear() === end.getFullYear() && 
+                        current.getMonth() === end.getMonth();
+        const daysInMonth = new Date(current.getFullYear(), current.getMonth() + 1, 0).getDate();
+        const isFebruary = current.getMonth() === 1; // February is month 1 (0-indexed)
+
+        let daysPassed;
+
+        if (isStartMonth && isEndMonth) {
+            // Same month: Handle start and end in the same month
+            if (isFebruary && end.getDate() === daysInMonth) {
+                daysPassed = 30 - start.getDate();
+            } else {
+                daysPassed = end.getDate() - start.getDate();
+            }
+        } else if (isStartMonth) {
+            // First month: Apply start month rules
+            daysPassed = (daysInMonth === 31 || isFebruary) 
+                ? 30 - start.getDate() 
+                : daysInMonth - start.getDate();
+        } else if (isEndMonth) {
+            // Last month: Apply end month rules
+            daysPassed = (daysInMonth === 31 && end.getDate() === 31) 
+                ? 30 
+                : end.getDate();
+        } else {
+            // Middle months: Full month with adjustments
+            daysPassed = daysInMonth === 31 ? 30 : daysInMonth;
+        }
+
+        return daysPassed;
+    }
+</script>
+
+
 </body>
 </html>
